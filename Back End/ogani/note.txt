@@ -1,0 +1,42 @@
+ @Override
+    public void placeOrder(CreateOrderRequest request) {
+        // TODO Auto-generated method stub
+        Orders orders = new Orders();
+        // Users users = usersRepository.findByUsername(request.getUsername()).orElseThrow(() -> new NotFoundException("Not Found User With Username:" + request.getUsername()));
+        Users users = usersRepository.findById(request.getUserId()).orElseThrow(() -> new NotFoundException("Not Found User With Id:" + request.getUserId()));
+        Chef chef = chefRepository.findById(request.getChefId()).orElseThrow(() -> new NotFoundException("Not Found User With Id:" + request.getChefId()));
+        orders.setUsers(users);
+        orders.setChef(chef);
+        orders.setTitle(request.getTitle());
+        orders.setDescription(request.getDescription());
+        orders.setImage(request.getImage());
+        DateFormat inputDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        DateFormat ouputDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z");
+        try{
+            Date startTimeInput = inputDateFormat.parse(request.getStartTime());
+            Date endTimeInput = inputDateFormat.parse(request.getEndTime());
+            String startTimeOnput = ouputDateFormat.format(startTimeInput);
+            String endTimeOnput = ouputDateFormat.format(endTimeInput);
+            Date startTime = dateFormat.parse(startTimeOnput);
+            Date endTime = dateFormat.parse(endTimeOnput);
+            orders.setStartTime(startTime);
+            orders.setEndTime(endTime);
+            orders.setEmail(users.getEmail());
+            orders.setPhone(users.getPhone());
+            orders.setAddress(request.getAddress());
+            // orders.setEnable(0);
+            // Chuyển đổi java.util.Date thành java.time.Instant
+            java.time.Instant startInstant = startTime.toInstant();
+            java.time.Instant endInstant = endTime.toInstant();
+            Duration duration = Duration.between(startInstant, endInstant);
+            long hours = duration.toHours();
+            long totalPrice = hours * chef.getPrice();
+            orders.setTotalPrice(totalPrice);
+            orders.setDate(new Date());
+            ordersRepository.save(orders);
+        }catch (ParseException e) {
+            // Handle parsing exception if needed
+            e.printStackTrace();
+        }
+    }
